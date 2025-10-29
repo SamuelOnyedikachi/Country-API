@@ -1,0 +1,22 @@
+# Dependencies
+/node_modules
+
+# Environment variables
+# Never commit this file!
+.env
+
+# Generated cache files
+# This directory contains the summary.png image
+/cache
+
+# Test output files
+test_summary.png
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
