@@ -43,8 +43,9 @@ export const getAllCountries = async (req, res) => {
 export const getCountryByName = async (req, res) => {
   try {
     const { name } = req.params;
+    const decodedName = decodeURIComponent(name); // Decode URL-encoded characters
     const country = await db('countries')
-      .whereRaw('LOWER(name) = ?', [name.toLowerCase()])
+      .whereRaw('LOWER(name) = ?', [decodedName.toLowerCase()])
       .first();
 
     if (!country) {

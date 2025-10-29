@@ -35,7 +35,12 @@ export async function refreshCountriesService() {
 
     // Loop through and upsert country data
     for (const c of countriesData) {
-      const name = c.name?.trim();
+      // Handle cases where name is an object { common: '...', official: '...' }
+      const name = (
+        typeof c.name === 'object' ? c.name.common : c.name
+      )?.trim();
+      if (!name) continue; // Skip if the country has no valid name
+
       const population = c.population || 0;
       const currency_code = c.currencies?.[0]?.code || null;
       const exchange_rate = currency_code
@@ -120,8 +125,8 @@ async function generateSummaryImage(timestamp) {
     const totalCountries = await db('countries').count('id as total').first();
 
     // Create base image (dark slate background)
-    const image = await new Jimp.Jimp(600, 400, '#1e293b');
-    const font = await Jimp.Jimp.loadFont(Jimp.Jimp.FONT_SANS_16_WHITE);
+    const image = new Jimp(600, 400, '#1e293b');
+    const font = await Jimp.loadFont(Jimp.FONT_SANS_16_WHITE);
 
     image.print(font, 20, 20, `Total Countries: ${totalCountries.total}`);
     image.print(font, 20, 50, `Last Refresh: ${timestamp.toISOString()}`);
@@ -129,7 +134,10 @@ async function generateSummaryImage(timestamp) {
     let y = 100;
     image.print(font, 20, 80, 'Top 5 by Estimated GDP:');
     for (const c of topCountries) {
-      image.print(font, 20, y, `${c.name}: ${c.estimated_gdp.toFixed(2)}`);
+      const gdpText =
+        c.estimated_gdp !== null ? c.estimated_gdp.toFixed(2) : 'N/A';
+
+      image.print(font, 20, y, `${c.name}: ${gdpText}`);
       y += 25;
     }
 
