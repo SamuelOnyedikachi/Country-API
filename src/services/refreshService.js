@@ -9,12 +9,12 @@ const SUMMARY_PATH = path.join(CACHE_DIR, 'summary.png');
 
 export async function refreshCountriesService() {
   try {
-    const [countriesRes, exchangeRes] = await Promise.all([
-      axios.get(
-        'https://restcountries.com/v3.1/all?fields=name,capital,region,population,flags,currencies'
-      ),
-      axios.get('https://open.er-api.com/v6/latest/USD'),
-    ]);
+    const countriesRes = await axios.get(
+      'https://restcountries.com/v3.1/all?fields=name,capital,region,population,flags,currencies'
+    );
+    const exchangeRes = await axios.get(
+      'https://open.er-api.com/v6/latest/USD'
+    );
 
     if (countriesRes.status !== 200)
       throw new Error('Could not fetch data from RestCountries API');
@@ -40,13 +40,17 @@ export async function refreshCountriesService() {
         ? exchangeRates[currency_code] || null
         : null;
 
-      let estimated_gdp = 0;
-      if (!currency_code) estimated_gdp = 0;
-      else if (!exchange_rate) estimated_gdp = null;
-      else {
-        const randomFactor =
-          Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
-        estimated_gdp = (population * randomFactor) / exchange_rate;
+      let estimated_gdp;
+      if (currency_code) {
+        if (exchange_rate) {
+          const randomFactor =
+            Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
+          estimated_gdp = (population * randomFactor) / exchange_rate;
+        } else {
+          estimated_gdp = null; // Currency code exists, but no exchange rate found
+        }
+      } else {
+        estimated_gdp = 0; // No currency code
       }
 
       const countryData = {
@@ -82,7 +86,7 @@ export async function refreshCountriesService() {
     };
   } catch (err) {
     console.error('Refresh failed:', err.message);
-    throw new Error(err.message);
+    throw err; // Re-throw the original error to preserve details
   }
 }
 

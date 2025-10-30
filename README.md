@@ -63,7 +63,7 @@ CREATE TABLE countries (
     capital VARCHAR(255) NULL,
     region VARCHAR(255) NULL,
     population BIGINT NOT NULL,
-    currency_code VARCHAR(10) NULL,
+    currency_code VARCHAR(10) DEFAULT NULL,
     exchange_rate DECIMAL(15, 4) NULL,
     estimated_gdp DECIMAL(20, 4) NULL,
     flag_url VARCHAR(255) NULL,

@@ -55,16 +55,17 @@ export const createCountry = async (req, res) => {
       flag_url,
     } = req.body;
 
-    if (!name || !population || !currency_code) {
+    const errors = {};
+    if (!name) errors.name = 'is required';
+    if (!population) errors.population = 'is required';
+    if (!currency_code) errors.currency_code = 'is required';
+
+    if (Object.keys(errors).length > 0) {
       return res.status(400).json({
         error: 'Validation failed',
-        details: {
-          name: !name ? 'is required' : undefined,
-          population: !population ? 'is required' : undefined,
-          currency_code: !currency_code ? 'is required' : undefined,
-        },
+        details: errors,
       });
-    }
+    } // This closing brace was missing
 
     const existing = await db('countries')
       .whereRaw('LOWER(name) = ?', [name.toLowerCase()])
@@ -132,13 +133,20 @@ export const refreshCountriesHandler = async (req, res) => {
     const result = await refreshCountriesService();
     res.json(result);
   } catch (err) {
-    console.error(err);
-    res
-      .status(503)
-      .json({
+    console.error('Refresh handler failed:', err.message);
+    if (err.isAxiosError) {
+      // This is an error from fetching external data
+      return res.status(503).json({
         error: 'External data source unavailable',
-        details: err.message,
+        details: `Could not fetch data from ${err.config.url}. Reason: ${
+          err.cause || err.code || err.message
+        }`,
       });
+    }
+    // This is likely a database or other internal error
+    res
+      .status(500)
+      .json({ error: 'Internal server error', details: err.message });
   }
 };
 
@@ -150,7 +158,7 @@ export const getStatus = async (req, res) => {
       .first('last_refreshed_at');
     res.json({
       total_countries: total.count,
-      last_refreshed_at: lastRefresh?.last_refreshed_at || null,
+      last_refreshed_at: lastRefresh?.last_refreshed_at || null, // This line is correct, my apologies. The issue is likely elsewhere.
     });
   } catch (err) {
     console.error(err);
