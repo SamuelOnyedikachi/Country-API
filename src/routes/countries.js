@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express from 'express';
 import {
   getAllCountries,
   getCountryByName,
@@ -10,23 +10,34 @@ import {
   getSummaryImage,
 } from '../controllers/countriesController.js';
 
-const router = Router();
+const router = express.Router();
 
-// Route to show available endpoints for this router
-router.get('/', (req, res) => {
-  res.json({
-    message: 'Country API is active',
-    endpoints: ['/refresh', '/status', '/image', '/:name'],
-  });
-});
+// ===============================
+// Country Routes
+// ===============================
 
-router.post('/refresh', refreshCountriesHandler);
+// GET /status - Show total countries and last refresh timestamp
 router.get('/status', getStatus);
+
+// GET /countries/image -> serve summary image
 router.get('/image', getSummaryImage);
+
+// GET /countries - Retrieve all countries (with optional filters)
 router.get('/', getAllCountries);
-router.post('/', createCountry);
+
+// GET /countries/:name - Retrieve a single country by name
 router.get('/:name', getCountryByName);
+
+// POST /countries - Add a new country manually
+router.post('/', createCountry);
+
+// PUT /countries/:name - Update a country
 router.put('/:name', updateCountry);
+
+// DELETE /countries/:name - Delete a country
 router.delete('/:name', deleteCountry);
+
+// POST /countries/refresh - Refresh the list of countries from external APIs
+router.post('/refresh', refreshCountriesHandler);
 
 export default router;
